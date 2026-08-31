@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* workmate 디자인 토큰 재사용 — 프리미엄 다크. Tailwind v4 @theme = CSS 변수 + 유틸 자동생성. */
+@theme {
+  --color-bg: #07080b;
+  --color-bg-elevated: #0e1015;
+  --color-bg-card: #12141b;
+  --color-bg-card-hover: #181b25;
+
+  --color-border-subtle: #1e2230;
+  --color-border-default: #282d3c;
+  --color-border-strong: #393f57;
+
+  --color-text-primary: #dfe2ea;
+  --color-text-hero: #eef0f5;
+  --color-text-secondary: #a3aabd;
+  --color-text-tertiary: #868eac;
+  --color-text-muted: #757d99;
+
+  --color-accent: #128fe8;
+  --color-accent-hover: #3aabf7;
+  --color-accent-bg: #0a3a5c;
+
+  --color-success: #10b981;
+  --color-success-bg: #064e3b;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-danger-bg: #4a1420;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Pretendard Variable", "Pretendard",
+    "Apple SD Gothic Neo", "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+  font-feature-settings: "ss01", "tnum";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* iOS 입력 자동 줌 방지 */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+/* 커서(현재 조합 위치) 밑줄 깜빡임 */
+@keyframes ktype-caret-blink {
+  0%,
+  100% {
+    text-decoration-color: var(--color-accent);
+  }
+  50% {
+    text-decoration-color: transparent;
+  }
+}
+.ktype-caret {
+  animation: ktype-caret-blink 1.1s step-end infinite;
+}
+
+/* 오타 시 화면 흔들림 */
+@keyframes ktype-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+.ktype-shake { animation: ktype-shake 0.22s ease-in-out; }
+
+/* 콤보/뱃지 팝 등장 */
+@keyframes ktype-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  45% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.ktype-pop { animation: ktype-pop 0.3s ease-out; }
+
+/* 마스코트 둥실 */
+@keyframes ktype-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.ktype-float { animation: ktype-float 3.4s ease-in-out infinite; }
+
+/* 완주 색종이 낙하 */
+@keyframes ktype-confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
