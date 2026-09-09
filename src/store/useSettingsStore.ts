@@ -18,17 +18,38 @@ interface SettingsState {
   setKeyLayout(pref: KeyLayoutPref): void;
 }
 
+/** 임베드 부모(랜딩 페이지)가 넘긴 언어 — ?ui=en&target=ko. 방문자의 사이트 언어를 따라가야
+ *  영어권 방문자가 한국어 UI 를 만나지 않는다. URL 에 있으면 저장값보다 우선. */
+function langFromQuery(key: string): Lang | null {
+  if (typeof window === "undefined") return null;
+  const v = new URLSearchParams(window.location.search).get(key);
+  return v === "ko" || v === "en" ? v : null;
+}
+const queryUi = langFromQuery("ui");
+const queryTarget = langFromQuery("target");
+
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      uiLang: "ko",
-      targetLang: "ko",
+      uiLang: queryUi ?? "ko",
+      targetLang: queryTarget ?? "ko",
       keyLayout: "auto",
       setUiLang: (uiLang) => set({ uiLang }),
       setTargetLang: (targetLang) => set({ targetLang }),
       setKeyLayout: (keyLayout) => set({ keyLayout }),
     }),
-    { name: "ktype-settings:v2" },
+    {
+      name: "ktype-settings:v2",
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<SettingsState>;
+        return {
+          ...current,
+          ...p,
+          ...(queryUi ? { uiLang: queryUi } : {}),
+          ...(queryTarget ? { targetLang: queryTarget } : {}),
+        };
+      },
+    },
   ),
 );
 

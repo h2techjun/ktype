@@ -47,6 +47,14 @@ export function keyToJamo(code: string, shift: boolean): string | null {
 }
 
 /** 온스크린 키보드 렌더용 행 구조. */
+/** Shift 가 필요한 자모(쌍자음·ㅒㅖ). 외국인 학습자가 가장 많이 막히는 지점이라 화면에서 안내한다. */
+export const SHIFT_JAMO = new Set(["ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ", "ㅒ", "ㅖ"]);
+/** Shift 자모 → 같은 키의 기본 자모(ㄲ→ㄱ). 안내 문구 "Shift + ㄱ" 용. */
+export function shiftBase(jamo: string): string | null {
+  for (const cap of Object.values(DUBEOLSIK_LAYOUT)) if (cap.shift === jamo) return cap.normal;
+  return null;
+}
+
 export const KEYBOARD_ROWS: string[][] = [
   ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP"],
   ["KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL"],

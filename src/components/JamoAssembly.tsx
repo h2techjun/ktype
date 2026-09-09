@@ -3,10 +3,31 @@ import { composingJamo, renderComposing, type ImeState } from "../hangul/ime";
 // 조합 시각화 — 실제 IME 처럼 "한 칸에서 글자가 자라나는" 방식(ㄱ→고→곰).
 // 3박스 분리 메타포 대신 브라우저 IME 멘탈모델(조합 중 밑줄)을 재사용해 학습 부담을 줄인다.
 // 아래 자모 트랙이 초성·중성·종성이 어떻게 합쳐지는지를 보조로 보여준다.
-export function JamoAssembly({ ime }: { ime: ImeState }) {
+export function JamoAssembly({ ime, compact }: { ime: ImeState; compact?: boolean }) {
   const { cho, jung, jong } = composingJamo(ime.composing);
   const composed = renderComposing(ime.composing);
   const composing = composed !== "";
+
+  // 압축형 — 커서 타일이 이미 조합 중 글자를 보여주므로 큰 박스 없이 자모 트랙만 한 줄로.
+  if (compact) {
+    const Slot = ({ label, ch }: { label: string; ch: string }) => (
+      <span className="flex items-baseline gap-1">
+        <span className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>{label}</span>
+        <span className="w-5 text-center text-base font-bold" style={{ color: ch ? "var(--color-accent-hover)" : "var(--color-border-strong)" }}>{ch || "·"}</span>
+      </span>
+    );
+    return (
+      <div className="flex items-center justify-center gap-2 rounded-full px-3 py-1" style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border-subtle)" }}>
+        <Slot label="초성" ch={cho} />
+        <span style={{ color: "var(--color-text-muted)" }}>+</span>
+        <Slot label="중성" ch={jung} />
+        <span style={{ color: "var(--color-text-muted)" }}>+</span>
+        <Slot label="종성" ch={jong} />
+        <span style={{ color: "var(--color-text-muted)" }}>=</span>
+        <span className="w-6 text-center text-lg font-black" style={{ color: composing ? "var(--color-text-hero)" : "var(--color-border-strong)" }}>{composed || "·"}</span>
+      </div>
+    );
+  }
 
   const Track = ({ label, ch }: { label: string; ch: string }) => {
     const filled = ch !== "";

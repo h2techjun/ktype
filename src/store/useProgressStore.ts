@@ -18,7 +18,7 @@ interface ProgressState {
 }
 
 /** 신기록 판정 — 별 수 우선, 같으면 타/분(cpm). */
-function isBetter(next: BestRecord, prev: BestRecord | undefined): boolean {
+export function isBetter(next: BestRecord, prev: BestRecord | undefined): boolean {
   if (!prev) return true;
   if (next.stars !== prev.stars) return next.stars > prev.stars;
   return next.cpm > prev.cpm;

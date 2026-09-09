@@ -25,7 +25,7 @@ const GAMES: GameEntry[] = [
 
 const TEXT: Record<Lang, {
   subtitle: string; displayLabel: string; practiceLabel: string;
-  targetKo: string; targetEn: string; practiceName: string; practiceDesc: string; gamesLabel: string; soon: string;
+  targetKo: string; targetEn: string; practiceName: string; practiceDesc: string; gamesLabel: string; soon: string; quick: string;
 }> = {
   ko: {
     subtitle: "K-Type · 타자를 게임처럼",
@@ -37,6 +37,7 @@ const TEXT: Record<Lang, {
     practiceDesc: "자판 → 단어 → 문장, 단계별로 익히기",
     gamesLabel: "🎮 타자 게임",
     soon: "준비중",
+    quick: "⚡ 스피드체크",
   },
   en: {
     subtitle: "K-Type · type like a game",
@@ -48,10 +49,11 @@ const TEXT: Record<Lang, {
     practiceDesc: "Keys → words → sentences, step by step",
     gamesLabel: "🎮 Typing Games",
     soon: "Soon",
+    quick: "⚡ Speed check",
   },
 };
 
-export function HomeScreen({ onPractice, onGame }: { onPractice: () => void; onGame: (id: string) => void }) {
+export function HomeScreen({ onQuick, onPractice, onGame }: { onQuick: () => void; onPractice: () => void; onGame: (id: string) => void }) {
   const uiLang = useSettingsStore((s) => s.uiLang);
   const setUiLang = useSettingsStore((s) => s.setUiLang);
   const targetLang = useSettingsStore((s) => s.targetLang);
@@ -62,10 +64,15 @@ export function HomeScreen({ onPractice, onGame }: { onPractice: () => void; onG
 
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col gap-6 px-4 py-8">
-      {/* 화면 언어(작게, 우상단) */}
-      <div className="flex items-center justify-end gap-2">
+      {/* 스피드체크로 복귀(좌) · 화면 언어(우) */}
+      <div className="flex items-center justify-between gap-2">
+        <button onClick={onQuick} className="rounded-full px-3 py-1.5 text-xs font-bold" style={{ background: "var(--color-bg-card)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border-default)" }}>
+          ← {t.quick}
+        </button>
+        <div className="flex items-center gap-2">
         <span className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>{t.displayLabel}</span>
         <LangToggle value={uiLang} onChange={setUiLang} ariaLabel={t.displayLabel} />
+        </div>
       </div>
 
       <header className="flex flex-col items-center gap-2 text-center">

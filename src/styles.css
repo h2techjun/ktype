@@ -109,3 +109,65 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── 아케이드 톤 보강 (스피드체크) ── */
+/* 하드 섀도우 버튼 — 누르면 내려앉는다 */
+.ktype-btn-hard {
+  box-shadow: 0 5px 0 0 #0a3a5c;
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
+}
+.ktype-btn-hard:hover { transform: translateY(-1px); }
+.ktype-btn-hard:active { transform: translateY(4px); box-shadow: 0 1px 0 0 #0a3a5c; }
+
+/* "아무 키나 눌러 시작" 호흡 */
+@keyframes ktype-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.82; }
+}
+.ktype-pulse { animation: ktype-pulse 1.6s ease-in-out infinite; }
+
+/* 등급 리빌 — 살짝 늦게 튀어나온다(숫자 카운트업과 시차) */
+@keyframes ktype-reveal {
+  0% { transform: translateY(8px) scale(0.85); opacity: 0; }
+  60% { transform: translateY(0) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.ktype-reveal { animation: ktype-reveal 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) 0.35s both; }
+
+/* 완성 보여주기 — 전체 초록 + 살짝 커졌다 돌아온다 */
+@keyframes ktype-done {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.ktype-done { animation: ktype-done 0.35s ease-out; }
+
+/* 음절 타일 — 커서 칸 호흡 · 정타 칸 팝 */
+@keyframes ktype-tile-cursor {
+  0%, 100% { box-shadow: 0 3px 0 0 #0a3a5c, 0 0 18px -2px var(--color-accent); }
+  50% { box-shadow: 0 3px 0 0 #0a3a5c, 0 0 26px 0 var(--color-accent); }
+}
+.ktype-tile-cursor { animation: ktype-tile-cursor 1.2s ease-in-out infinite; }
+@keyframes ktype-tile-pop {
+  0% { transform: scale(0.92); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.ktype-tile-pop { animation: ktype-tile-pop 0.18s ease-out; }
+
+/* 오타 글자 칩 */
+@keyframes ktype-wrong-chip {
+  0% { transform: translateY(4px) scale(0.8); opacity: 0; }
+  20% { transform: translateY(0) scale(1.05); opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.ktype-wrong-chip { animation: ktype-wrong-chip 0.7s ease-out both; }
+
+/* 등급 색으로 물드는 배경 글로우 */
+.ktype-glow-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  background: radial-gradient(60% 45% at 50% 0%, var(--ktype-glow, transparent) 0%, transparent 70%);
+  opacity: 0.22;
+  transition: background 0.6s ease;
+}

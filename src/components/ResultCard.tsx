@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "../store/useGameStore";
 import { stagesFor } from "../data";
-import { useProgressStore } from "../store/useProgressStore";
+import { useProgressStore, isBetter } from "../store/useProgressStore";
 import { useSettingsStore } from "../store/useSettingsStore";
 import { computeSpeed, computeAccuracy, stars } from "../lib/metrics";
 import { buildShareText, shareResult, type ShareOutcome } from "../lib/share";
@@ -57,15 +57,15 @@ export function ResultCard() {
   const stageList = stagesFor(lang);
   const nextStage = stageList[stageList.findIndex((st) => st.id === stageId) + 1];
 
-  const [isNewBest, setIsNewBest] = useState(false);
+  const record = { cpm: speed.cpm, wpm: speed.wpm, accuracy, stars: star, maxCombo };
+  // 신기록 여부는 저장 "전" 스냅샷과 비교 — effect 가 두 번 돌아도(StrictMode) 같은 답.
+  const [prevBest] = useState(() => (stageId ? useProgressStore.getState().best[stageId] : undefined));
+  const isNewBest = isBetter(record, prevBest);
   const [shareMsg, setShareMsg] = useState<ShareOutcome | null>(null);
 
   useEffect(() => {
     if (!stageId) return;
-    const updated = useProgressStore
-      .getState()
-      .record(stageId, { cpm: speed.cpm, wpm: speed.wpm, accuracy, stars: star, maxCombo });
-    setIsNewBest(updated);
+    useProgressStore.getState().record(stageId, record);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

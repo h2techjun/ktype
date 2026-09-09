@@ -1,21 +1,22 @@
-import { useEffect, useState } from "react";
 import { useGameStore } from "../store/useGameStore";
 import { useSettingsStore, resolveKeyLayout } from "../store/useSettingsStore";
 import { nextExpectedJamo } from "../hangul/ime";
+import { SHIFT_JAMO, shiftBase } from "../hangul/dubeolsik";
 import { cjiNextTap } from "../hangul/cheonjiin";
 import { useIsTouch } from "../lib/useIsTouch";
 import { computeSpeed, computeAccuracy } from "../lib/metrics";
-import { isTypableKey, typeText, hasTypeError, type Lang } from "../typing/engine";
+import { typeText, type Lang } from "../typing/engine";
 import { sound } from "../lib/sound";
+import { useTypingKeys } from "../quick/useTypingKeys";
 import { TargetText } from "./TargetText";
 import { JamoAssembly } from "./JamoAssembly";
 import { Hud } from "./Hud";
 import { VirtualKeyboard } from "./VirtualKeyboard";
-import { Mascot, type Mood } from "./Mascot";
+import { Mascot } from "./Mascot";
 
-const ERROR_HINT: Record<string, string> = {
-  ko: "⌫ 백스페이스로 지우고 다시 쳐보세요",
-  en: "⌫ Press backspace and try again",
+const SHIFT_HINT: Record<Lang, (base: string, jamo: string) => string> = {
+  ko: (base, jamo) => `⇧ Shift + ${base} = ${jamo}`,
+  en: (base, jamo) => `⇧ Hold Shift + ${base} for ${jamo}`,
 };
 
 /** 화면 자판 선택 — 폰에서 쓰는 천지인과 PC 두벌식을 오갈 수 있게 한다. */
@@ -35,9 +36,8 @@ export function TypingScreen() {
   const combo = useGameStore((s) => s.combo);
   const startMs = useGameStore((s) => s.startMs);
   const nowMs = useGameStore((s) => s.nowMs);
-  const hitSeq = useGameStore((s) => s.hitSeq);
-  const lastHit = useGameStore((s) => s.lastHit);
   const stage = useGameStore((s) => s.currentStage());
+  const itemDone = useGameStore((s) => s.itemDone);
   const backToSelect = useGameStore((s) => s.backToSelect);
 
   const keyLayoutPref = useSettingsStore((s) => s.keyLayout);
@@ -45,47 +45,7 @@ export function TypingScreen() {
   const touch = useIsTouch();
   const layout = resolveKeyLayout(keyLayoutPref, touch);
 
-  const [mood, setMood] = useState<Mood>("idle");
-  const [shake, setShake] = useState(false);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.isComposing) return;
-      if (!isTypableKey(lang, e.code, e.key, e.shiftKey)) return;
-      e.preventDefault();
-      sound.unlock();
-      useGameStore.getState().pressKey(e.code, e.key, e.shiftKey);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lang]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => useGameStore.getState().tick(), 100);
-    return () => window.clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    if (hitSeq === 0) return;
-    if (lastHit === "complete") { sound.complete(); return; }
-    if (lastHit === "error") { sound.error(); return; }
-    sound.key(hitSeq);
-    if (lastHit === "correct") sound.correct();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hitSeq]);
-
-  useEffect(() => {
-    if (hitSeq === 0) return;
-    if (lastHit === "error") {
-      setMood("oops");
-      setShake(true);
-      const t1 = window.setTimeout(() => setShake(false), 240);
-      const t2 = window.setTimeout(() => setMood("idle"), 650);
-      return () => { window.clearTimeout(t1); window.clearTimeout(t2); };
-    }
-    setMood(combo >= 3 ? "happy" : "idle");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hitSeq]);
+  const { mood, shake, wrong } = useTypingKeys(lang, phase === "playing");
 
   if (phase !== "playing" || !stage) return null;
 
@@ -104,8 +64,9 @@ export function TypingScreen() {
   const rawNextTap = nextJamo ? cjiNextTap(nextJamo, typed.tap.seq) : null;
   const nextTap =
     rawNextTap !== null && typed.tap.key === rawNextTap ? "Commit" : rawNextTap;
-  const mistyped = hasTypeError(typed, target);
-  const progress = (itemIndex / stage.items.length) * 100;
+  const progress = ((itemIndex + (itemDone ? 1 : 0)) / stage.items.length) * 100;
+  const shiftJamo = nextJamo && SHIFT_JAMO.has(nextJamo) ? nextJamo : null;
+  const shiftFrom = shiftJamo ? shiftBase(shiftJamo) : null;
 
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col gap-4 px-4 py-5">
@@ -123,8 +84,18 @@ export function TypingScreen() {
         <Hud speed={speed} accuracy={accuracy} combo={combo} uiLang={uiLang} />
       </div>
 
-      <div className={`flex flex-col items-center gap-3 py-3 ${shake ? "ktype-shake" : ""}`}>
-        <TargetText target={target} typed={typed} lang={lang} />
+      <div className={`relative flex flex-col items-center gap-3 rounded-3xl px-4 py-5 ${shake ? "ktype-shake" : ""}`} style={{ background: "var(--color-bg-card)", border: "1px solid var(--color-border-default)", boxShadow: "0 6px 0 0 #0b0d14" }}>
+        <TargetText target={target} typed={typed} lang={lang} done={itemDone} />
+        {wrong && (
+          <span className="ktype-wrong-chip absolute right-3 top-3 rounded-full px-2.5 py-1 text-sm font-black" style={{ background: "var(--color-danger-bg)", color: "#fecaca", border: "1px solid var(--color-danger)" }}>
+            ✗ {wrong}
+          </span>
+        )}
+        {itemDone && (
+          <span className="ktype-pop absolute left-3 top-3 rounded-full px-2.5 py-1 text-sm font-black" style={{ background: "var(--color-success-bg)", color: "#d1fae5", border: "1px solid var(--color-success)" }}>
+            ✓
+          </span>
+        )}
         {(item?.roman || item?.gloss) && (
           <div className="text-center text-sm" style={{ color: "var(--color-text-tertiary)" }}>
             {item?.roman && <span className="italic">{item.roman}</span>}
@@ -139,11 +110,11 @@ export function TypingScreen() {
         )}
       </div>
 
-      {lang === "ko" && <JamoAssembly ime={typed.ime} />}
+      {lang === "ko" && <JamoAssembly ime={typed.ime} compact />}
 
-      {mistyped && (
-        <div className="text-center text-sm font-semibold" style={{ color: "var(--color-danger)" }}>
-          {ERROR_HINT[uiLang]}
+      {shiftJamo && shiftFrom && (
+        <div className="ktype-pop mx-auto rounded-full px-3 py-1 text-xs font-bold" style={{ background: "var(--color-warning)", color: "#1a1206" }}>
+          {SHIFT_HINT[uiLang](shiftFrom, shiftJamo)}
         </div>
       )}
 
