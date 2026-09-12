@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "한글 타자 (K-Type) — 두벌식 한글 타자 연습 게임",
+  "description": "A Korean typing trainer that visualizes how jamo assemble into syllable blocks",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -30,5 +30,16 @@
   },
   "overrides": {
     "vite": "^6.0.0"
-  }
+  },
+  "license": "MIT",
+  "homepage": "https://workmate.tools/ktype/?ui=en&target=ko",
+  "keywords": [
+    "hangul",
+    "korean",
+    "typing",
+    "ime",
+    "dubeolsik",
+    "cheonjiin",
+    "learning"
+  ]
 }

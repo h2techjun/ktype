@@ -2,3 +2,6 @@ node_modules
 dist
 *.tsbuildinfo
 .DS_Store
+
+# AI 워크플로우 설정 — 공개 리포에 노출하지 않는다
+.claude/
